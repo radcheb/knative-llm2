@@ -1,0 +1,39 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: {{ .Values.application.name }}
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/scale-to-zero-pod-retention-period: "15m"
+        autoscaling.knative.dev/min-scale: {{ .Values.autoscaling.min }}
+        autoscaling.knative.dev/max-scale: {{ .Values.autoscaling.max }}
+        autoscaling.knative.dev/target: {{ .Values.autoscaling.target_concurrency }}
+    spec:
+      containers:
+        - image: ghcr.io/huggingface/text-generation-inference:{{ .Values.application.tag }}
+          command:
+            - text-generation-launcher
+            - --model-id
+            - {{ .Values.model.id }}
+          ports:
+            - containerPort: 80
+          env:
+            - name: MAX_TOTAL_TOKENS
+              value: "4096"
+            - name: MAX_INPUT_LENGTH
+              value: "2048"
+            - name: MAX_CONCURRENT_REQUESTS
+              value: "4"
+            - name: MAX_TOTAL_TOKENS
+              value: "4096"
+            - name: HUGGING_FACE_HUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  key: HUGGING_FACE_HUB_TOKEN
+                  name: common-secrets
+          resources:
+            limits:
+              memory: 110Gi
+              nvidia.com/gpu : 1

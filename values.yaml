@@ -1,0 +1,11 @@
+application:
+  name: llama2-serving
+  tag: 1.0.3
+
+autoscaling:
+  min: 0
+  max: 4
+  target_concurrency: 4
+
+model:
+  id: "meta-llama/Llama-2-7b-chat-hf"
